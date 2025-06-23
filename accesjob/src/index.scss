@@ -1,0 +1,25 @@
+@import "slick-carousel/slick/slick";
+@import "slick-carousel/slick/slick-theme";
+
+// src/styles/custom-variables.scss
+@import "bootstrap/scss/bootstrap";
+
+@font-face {
+  font-family: 'Figtree';
+  src: url('./assets/fonts/DMSans-VariableFont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'Figtree', sans-serif;
+  min-height: 100dvh;
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+          'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24;
+}

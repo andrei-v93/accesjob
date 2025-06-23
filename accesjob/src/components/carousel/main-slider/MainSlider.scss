@@ -1,0 +1,102 @@
+.main-slider{
+  display: flex;
+  height: 65dvh;
+
+  .slick-list {
+    height: 100%;
+
+    .slick-track {
+      height: 100%;
+
+      .slick-slide {
+        height:100%;
+
+        & > div {
+          height: 100%;
+
+          & > div {
+            height: 100%;
+          }
+        }
+      }
+    }
+  }
+
+  .slick-prev {
+    left: 50px !important;
+    z-index: 99;
+
+    &:before {
+      content: "arrow_back";
+    }
+  }
+
+  .slick-next {
+    right: 50px;
+    z-index: 99;
+
+    &:before {
+      content: "arrow_forward";
+    }
+  }
+
+  .slick-prev,
+  .slick-next {
+    width: 44px;
+    height: 44px;
+    box-shadow: 0 1px 6px rgba(156, 159, 181, 0.15);
+    border: 1px solid #eaebf3;
+    border-radius: 0.25rem;
+    background-color: #fff;
+    transition: all ease 0.2s;
+
+    &:before {
+      color: #212529;
+      font-family: "Material Symbols Outlined";
+      font-size: 24px;
+      vertical-align: middle;
+      opacity: 1;
+    }
+    &:hover {
+      background-color: #fff;
+      border-color: #000;
+    }
+  }
+
+  .slick-dots {
+    bottom: 20px;
+    z-index: 99;
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+
+    li {
+      width: auto;
+      height: auto;
+
+      button {
+        width: 50px;
+        height: 3px;
+        border-radius: 5px;
+        background-color: #dcdcdc;
+        opacity: 1;
+        padding: 0;
+
+        &:hover {
+          opacity: 1;
+        }
+
+        &::before {
+          display: none;
+        }
+      }
+
+      &.slick-active button {
+        background-color: #000;
+        opacity: 1;
+      }
+    }
+  }
+}

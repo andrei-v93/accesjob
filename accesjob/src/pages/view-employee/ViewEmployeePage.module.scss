@@ -1,0 +1,23 @@
+.employeeCover {
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  height: 300px;
+}
+
+.employeeImage {
+  width: 150px;
+  height: 150px;
+}
+
+.contactButton {
+  height: 40px;
+  width: 40px;
+  transition: all ease 0.2s;
+
+  &:hover {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+  }
+}

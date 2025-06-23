@@ -1,0 +1,79 @@
+.login-slider {
+  height: 100%;
+
+  .slick-slider {
+    height: 100%;
+
+    .slick-list {
+      height: 100%;
+      margin: 0 -9px;
+
+      .slick-track {
+        height: 100%;
+
+        .slick-slide {
+          height: 100%;
+          padding: 0 9px;
+
+          & > div {
+            height: 100%;
+
+            .slide {
+              height: 100%;
+
+              .slide-content-wrapper {
+                position: relative;
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+
+                /*.slide-overlay {
+                  background-color: rgba($white, 0.05);
+                  backdrop-filters: blur(10px);
+                }*/
+
+                .content {
+                  text-align: center;
+                  color: black;
+                  max-width: 80%;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    .slick-dots {
+      bottom: 0px;
+      height: 48px;
+      display: flex !important;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+
+      li {
+        margin: 0;
+        width: 50px;
+
+        button {
+          width: 100%;
+
+          &:before {
+            width: 100%;
+            content: "";
+            background-color: #fff;
+            height: 4px;
+            border-radius: 4px;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+
+
+

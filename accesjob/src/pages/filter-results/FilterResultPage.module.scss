@@ -1,0 +1,31 @@
+@import "bootstrap/scss/bootstrap";
+
+.employeeCard {
+  transition: all ease 0.2s;
+
+  .cardImage {
+    width: 64px;
+    height: 64px;
+  }
+
+  .cardButtonIcon {
+    transition: all ease 0.2s;
+  }
+
+  .cardTitle {
+    transition: all ease 0.2s;
+  }
+
+  &:hover {
+    border-color: $blue-accent !important;
+    transform: scale(1.05);
+
+    .cardButtonIcon {
+      color: $blue-accent !important;
+    }
+
+    .cardTitle {
+      color: $blue-accent !important;
+    }
+  }
+}
