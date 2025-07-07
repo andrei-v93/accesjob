@@ -97,7 +97,7 @@ function App() {
     return (
         <>
             <SocketProvider user={user}>
-                <NotificationProvider>
+                <NotificationProvider user={user}>
                     <Header user={user} onLogout={handleLogout} />
                     <main>
                         <AnimatePresence mode="wait">
