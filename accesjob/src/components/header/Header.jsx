@@ -3,10 +3,12 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './header-component.scss';
 import defaultAvatar from '/images/account-placeholder.jpeg';
+import { useNotifications } from '../../context/NotificationContext'; // 👈 import nou
 
 function Header({ user, onLogout }) {
     const navigate = useNavigate();
     const currentPage = useLocation().pathname;
+    const { unreadConversations } = useNotifications(); // 👈 hook
 
     if (currentPage === '/login' || currentPage === '/register') return null;
 
@@ -28,6 +30,20 @@ function Header({ user, onLogout }) {
                     <div className="collapse navbar-collapse justify-content-lg-end" id="navbarNavAltMarkup">
                         <div className="navbar-nav align-items-center gap-3">
                             <Link to="/despre-noi" className="nav-link">Despre noi</Link>
+
+                            {user && (
+                                <Link to="/mesaje" className="btn btn-outline-primary ms-3 position-relative">
+                                    <span className="material-symbols-outlined align-middle">chat</span> Mesaje
+                                    {unreadConversations.length > 0 && (
+                                        <span
+                                            className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                            style={{ fontSize: '0.65rem' }}
+                                        >
+                                            {unreadConversations.length}
+                                        </span>
+                                    )}
+                                </Link>
+                            )}
 
                             {user ? (
                                 <div className="dropdown">

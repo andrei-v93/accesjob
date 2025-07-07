@@ -127,14 +127,14 @@ router.post('/login', async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: 'Parolă incorectă' });
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
             expiresIn: '1h',
         });
 
         res.json({
             token,
             user: {
-                id: user._id,
+                id: user.id,
                 userType: user.userType,
                 firstName: user.firstName,
                 lastName: user.lastName,

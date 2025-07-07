@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { getUserData, saveUserData, clearUserData } from './services/auth';
 import { AnimatePresence } from 'framer-motion';
-
+import { NotificationProvider } from './context/NotificationContext';
+import { SocketProvider } from './context/SocketContext';
 import Header from './components/Header/Header';
 import LoginPage from './pages/auth/login/LoginPage.jsx';
 import RegisterPage from './pages/auth/register/RegisterPage.jsx';
@@ -14,8 +15,10 @@ import ResetPasswordPage from './pages/auth/reset-password/ResetPasswordPage.jsx
 import ViewEmployeePage from './pages/view-employee/ViewEmployeePage.jsx';
 import About from './pages/about-us/AboutPage.jsx';
 import FilterResultsPage from './pages/filter-results/FilterResultsPage.jsx';
+import MessagesPage from './pages/messages/MessagesPage.jsx';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 
 function App() {
     const [user, setUser] = useState(null);
@@ -93,33 +96,38 @@ function App() {
 
     return (
         <>
-            <Header user={user} onLogout={handleLogout} />
-            <main>
-                <AnimatePresence mode="wait">
-                    <Routes>
-                        <Route
-                            path="/"
-                            element={
-                                user
-                                    ? user.userType === 'angajat'
-                                        ? <Navigate to="/profile" />
-                                        : <Navigate to="/home" />
-                                    : <Navigate to="/home" />
-                            }
-                        />
-                        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-                        <Route path="/register" element={<RegisterPage />} />
-                        <Route path="/home" element={<HomePage user={user} />} />
-                        <Route path="/profile" element={<ProfilePage user={user} onUserUpdate={setUser} />} />
-                        <Route path="/profile/edit" element={<ProfileEdit user={user} onUserUpdate={setUser} />} />
-                        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-                        <Route path="/angajat/:id" element={<ViewEmployeePage user={user} />} />
-                        <Route path="/despre-noi" element={<About />} />
-                        <Route path="/filtrare" element={<FilterResultsPage user={user} />} />
-                    </Routes>
-                </AnimatePresence>
-            </main>
+            <SocketProvider user={user}>
+                <NotificationProvider>
+                    <Header user={user} onLogout={handleLogout} />
+                    <main>
+                        <AnimatePresence mode="wait">
+                            <Routes>
+                                <Route
+                                    path="/"
+                                    element={
+                                        user
+                                            ? user.userType === 'angajat'
+                                                ? <Navigate to="/profile" />
+                                                : <Navigate to="/home" />
+                                            : <Navigate to="/home" />
+                                    }
+                                />
+                                <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+                                <Route path="/register" element={<RegisterPage />} />
+                                <Route path="/home" element={<HomePage user={user} />} />
+                                <Route path="/profile" element={<ProfilePage user={user} onUserUpdate={setUser} />} />
+                                <Route path="/profile/edit" element={<ProfileEdit user={user} onUserUpdate={setUser} />} />
+                                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                                <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+                                <Route path="/angajat/:id" element={<ViewEmployeePage user={user} />} />
+                                <Route path="/despre-noi" element={<About />} />
+                                <Route path="/filtrare" element={<FilterResultsPage user={user} />} />
+                                <Route path="/mesaje" element={<MessagesPage user={user} />} />
+                            </Routes>
+                        </AnimatePresence>
+                    </main>
+                </NotificationProvider>
+            </SocketProvider>
         </>
     );
 }

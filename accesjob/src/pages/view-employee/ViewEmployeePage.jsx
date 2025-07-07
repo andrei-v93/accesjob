@@ -12,6 +12,8 @@ function ViewEmployeePage({ user }) {
     const [loading, setLoading] = useState(true);
     const [similarEmployees, setSimilarEmployees] = useState([]);
 
+    console.log('User primit în ViewEmployeePage:', user);
+
     useEffect(() => {
         if (!user || user.userType !== 'recruiter') {
             navigate('/login?reason=recruiter_required');
@@ -51,6 +53,7 @@ function ViewEmployeePage({ user }) {
     }, [id, user, navigate]);
 
     if (loading) return <p>Se încarcă profilul angajatului…</p>;
+    if (!user) return <p>Se încarcă datele utilizatorului...</p>;
     if (!employee) return <p>Angajatul nu a fost găsit.</p>;
 
     return (
@@ -167,12 +170,46 @@ function ViewEmployeePage({ user }) {
                                 <p className={"fs-16 fw-light text-dark m-0 lh-1"}>Phasellus neque mi, fermentum non
                                     convallis non, eleifend non magna</p>
                                 <div className={"d-flex flex-row align-items-center justify-content-between gap-2"}>
-                                    {employee.cvUrl && (
-                                        <a className={"btn btn-outline-primary shadow"} href={`${employee.cvUrl}`}
-                                           target="_blank"
-                                           rel="noopener noreferrer">
+                                    {employee._id && (
+                                        <button
+                                            className="btn btn-outline-primary shadow"
+                                            onClick={async () => {
+                                                const recruiterId = user?.id || user?._id;
+                                                const employeeId = employee?._id;
+
+                                                if (!recruiterId || !employeeId) {
+                                                    alert('ID-urile utilizatorilor nu sunt disponibile. Încearcă din nou.');
+                                                    return;
+                                                }
+
+                                                try {
+                                                    const res = await fetch(`${API_URL}/api/messages/start`, {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Content-Type': 'application/json'
+                                                        },
+                                                        body: JSON.stringify({ recruiterId, employeeId })
+                                                    });
+
+                                                    const data = await res.json();
+
+                                                    if (!res.ok) throw new Error(data.message || 'Eroare la inițierea conversației');
+
+                                                    // 👇 AICI adaugă logul
+                                                    console.log('Conversație creată:', data);
+
+                                                    navigate('/mesaje', {
+                                                        state: { openConversationId: data._id },
+                                                    });
+                                                } catch (err) {
+                                                    console.error('Eroare la inițierea conversației:', err.message);
+                                                    alert('Eroare la inițierea conversației. Încearcă din nou.');
+                                                }
+                                            }}
+
+                                        >
                                             Mesaj direct
-                                        </a>
+                                        </button>
                                     )}
                                     <div className={"d-flex flex-row align-items-center justify-content-center gap-2"}>
                                         <a href={`mailto:${employee.email}`}
