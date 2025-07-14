@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import ConversationList from '../../components/messages/ConversationList';
 import ChatWindow from '../../components/messages/ChatWindow';
-import { useSocket } from '../../context/SocketContext';
 import { useNotifications } from '../../context/NotificationContext';
 import styles from './MessagesPage.module.scss';
 
@@ -13,7 +12,6 @@ function MessagesPage({ user }) {
     const [selectedConversation, setSelectedConversation] = useState(null);
     const location = useLocation();
     const openConversationId = location.state?.openConversationId;
-    const { onMessage } = useSocket();
     const { markAsRead } = useNotifications();
     const userId = user?.id || user?._id;
 
@@ -39,12 +37,10 @@ function MessagesPage({ user }) {
     }, [userId, location.state]);
 
     useEffect(() => {
-        const handleReceiveMessage = () => {
-            fetchConversations();
-        };
-
-        onMessage(handleReceiveMessage);
-    }, [onMessage]);
+        if (selectedConversation?._id) {
+            markAsRead(selectedConversation._id);
+        }
+    }, [selectedConversation]);
 
     const handleSelectConversation = async (conv) => {
         try {
@@ -60,16 +56,10 @@ function MessagesPage({ user }) {
         }
     };
 
-    useEffect(() => {
-        if (selectedConversation?._id) {
-            markAsRead(selectedConversation._id);
-        }
-    }, [selectedConversation]);
-
     return (
-        <div className={`container-fluid ${styles.messagesPage}`}>
-            <div className="row vh-100">
-                <div className="col-md-4 border-end">
+        <div className={`container-fluid ${styles.messagesPage}`} style={{ height: '100vh', overflow: 'hidden' }}>
+            <div className="row h-100">
+                <div className="col-md-4 border-end h-100">
                     <ConversationList
                         conversations={conversations}
                         currentUser={user}
@@ -77,7 +67,7 @@ function MessagesPage({ user }) {
                         selectedId={selectedConversation?._id}
                     />
                 </div>
-                <div className="col-md-8 d-flex flex-column">
+                <div className="col-md-8 d-flex flex-column h-100">
                     {selectedConversation ? (
                         <ChatWindow
                             conversation={selectedConversation}

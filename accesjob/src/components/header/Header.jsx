@@ -8,15 +8,14 @@ import { useNotifications } from '../../context/NotificationContext'; // 👈 im
 function Header({ user, onLogout }) {
     const navigate = useNavigate();
     const currentPage = useLocation().pathname;
-    const { unreadConversations } = useNotifications(); // 👈 hook
-
+    const { unreadCounts } = useNotifications();
+    const hasUnread = Object.keys(unreadCounts).length > 0;
     if (currentPage === '/login' || currentPage === '/register') return null;
 
     const firstName = user?.name?.split(' ')[0] || 'Utilizator';
     const userImage = user?.pozaUrl
         ? `http://localhost:5000${user.pozaUrl}`
         : defaultAvatar;
-
     return (
         <header className="header position-relative w-100 top-0 start-0 z-3">
             <nav className="navbar navbar-expand-lg bg-body-tertiary">
@@ -34,12 +33,13 @@ function Header({ user, onLogout }) {
                             {user && (
                                 <Link to="/mesaje" className="btn btn-outline-primary ms-3 position-relative">
                                     <span className="material-symbols-outlined align-middle">chat</span> Mesaje
-                                    {unreadConversations.length > 0 && (
+                                    {hasUnread && (
                                         <span
                                             className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
                                             style={{ fontSize: '0.65rem' }}
                                         >
-                                            {unreadConversations.length}
+                                            {/* Doar un punct, fără număr */}
+                                            &nbsp;
                                         </span>
                                     )}
                                 </Link>

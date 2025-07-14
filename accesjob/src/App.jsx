@@ -35,7 +35,7 @@ function App() {
             return;
         }
 
-        if (savedUser) {
+        if (savedUser && savedUser.name) {
             // Avem user și token în localStorage -> setăm user
             setUser(savedUser.user ? savedUser.user : savedUser);
             setLoadingUser(false);
@@ -67,7 +67,6 @@ function App() {
                 setLoadingUser(false);
             })
             .catch((err) => {
-                console.warn('Eroare la fetch /me:', err.message);
                 setLoadingUser(false);
             });
     }, []);

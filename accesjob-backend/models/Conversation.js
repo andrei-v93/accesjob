@@ -1,4 +1,4 @@
-// models/Conversation.js
+// ✅ models/Conversation.js
 const mongoose = require('mongoose');
 
 const conversationSchema = new mongoose.Schema({
@@ -15,6 +15,11 @@ const conversationSchema = new mongoose.Schema({
     lastMessage: {
         type: String,
         default: ''
+    },
+    lastSenderId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
     },
     lastUpdated: {
         type: Date,

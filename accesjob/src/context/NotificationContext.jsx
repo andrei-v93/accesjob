@@ -1,55 +1,96 @@
-// src/context/NotificationContext.jsx
+// ✅ NotificationContext.jsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useSocket } from './SocketContext';
 
 const NotificationContext = createContext();
+const API_URL = import.meta.env.VITE_API_URL;
 
-export function NotificationProvider({ children }) {
-    const [unreadConversations, setUnreadConversations] = useState([]);
-    const { onMessage } = useSocket();
-    const [userId, setUserId] = useState(null);
+export function NotificationProvider({ user, children }) {
+    const [unreadCounts, setUnreadCounts] = useState({});
+    const { onMessage, joinRoom, socket } = useSocket();
 
-    // Obține userId doar când e disponibil
+    const userId = user?._id || user?.id;
+
+    // Join camerele conversațiilor și setare inițială unreadCounts
     useEffect(() => {
-        const user =
-            JSON.parse(localStorage.getItem('user')) ||
-            JSON.parse(sessionStorage.getItem('user'));
+        const fetchConversationsAndJoinRooms = async () => {
+            if (!userId || !socket) return;
 
-        const id = user?._id || user?.id;
+            try {
+                const res = await fetch(`${API_URL}/api/messages/conversations/${userId}`);
+                const data = await res.json();
 
-        console.log('🟢 NotificationContext mounted. userId:', id);
-        setUserId(id);
-    }, []);
+                const initialUnread = {};
 
-    const markAsUnread = (conversationId) => {
-        setUnreadConversations((prev) =>
-            prev.includes(conversationId) ? prev : [...prev, conversationId]
-        );
-    };
+                data.forEach((conv) => {
+                    if (conv._id) {
+                        joinRoom(conv._id);
 
-    const markAsRead = (conversationId) => {
-        setUnreadConversations((prev) => prev.filter((id) => id !== conversationId));
-    };
+                        if (conv.lastSenderId && conv.lastSenderId !== userId) {
+                            initialUnread[conv._id] = 1;
+                        }
+                    }
+                });
 
-    const isUnread = (conversationId) => unreadConversations.includes(conversationId);
-    const getUnreadCount = () => unreadConversations.length;
-
-    useEffect(() => {
-        if (!userId || !onMessage) return;
-
-        const handleMessage = (message) => {
-            console.log('🔔 Verific notificare:', message, 'vs userId:', userId);
-            if (message?.senderId !== userId) {
-                markAsUnread(message.conversationId);
+                setUnreadCounts(initialUnread);
+            } catch (err) {
+                console.error('❌ [Notification] Eroare la fetch conversații:', err);
             }
         };
 
-        onMessage(handleMessage);
-    }, [onMessage, userId]);
+        fetchConversationsAndJoinRooms();
+    }, [userId, socket]);
+
+    // Redare sunet + actualizare contor la mesaj nou
+    useEffect(() => {
+        if (!userId || !socket) return;
+
+        const playNotificationSound = () => {
+            const audio = new Audio('/sounds/message.mp3');
+            audio.currentTime = 0;
+            audio.play().catch((e) => console.warn('🔇 Eroare redare sunet:', e));
+        };
+
+        const handleMessage = (message) => {
+            if (
+                message?.conversationId &&
+                message?.senderId &&
+                message.senderId !== userId
+            ) {
+                setUnreadCounts((prev) => ({
+                    ...prev,
+                    [message.conversationId]: prev[message.conversationId]
+                        ? prev[message.conversationId] + 1
+                        : 1
+                }));
+
+                playNotificationSound();
+            }
+        };
+
+        socket.off('receiveMessage', handleMessage);
+        socket.on('receiveMessage', handleMessage);
+
+        return () => {
+            socket.off('receiveMessage', handleMessage);
+        };
+    }, [userId, socket]);
+
+    const markAsRead = (conversationId) => {
+        setUnreadCounts((prev) => {
+            const newCounts = { ...prev };
+            delete newCounts[conversationId];
+            return newCounts;
+        });
+    };
+
+    const isUnread = (conversationId) => {
+        return unreadCounts[conversationId] > 0;
+    };
 
     return (
         <NotificationContext.Provider
-            value={{ unreadConversations, markAsUnread, markAsRead, isUnread, getUnreadCount }}
+            value={{ unreadCounts, markAsRead, isUnread }}
         >
             {children}
         </NotificationContext.Provider>

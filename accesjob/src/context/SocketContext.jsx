@@ -1,5 +1,5 @@
 // src/context/SocketContext.jsx
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 
 const SocketContext = createContext();
@@ -8,45 +8,45 @@ export function SocketProvider({ user, children }) {
     const [socket, setSocket] = useState(null);
     const listenersRef = useRef([]);
 
-    // Inițializare socket
     useEffect(() => {
         if (!user) return;
 
-        const newSocket = io(import.meta.env.VITE_API_URL);
+        // Evită reconectarea multiplă
+        if (socket) {
+            console.log('❌ Socket deja activ. Îl deconectăm:', socket.id);
+            socket.disconnect();
+        }
+
+        const newSocket = io(import.meta.env.VITE_API_URL, {
+            transports: ['websocket'],
+            reconnectionAttempts: 5
+        });
+
         setSocket(newSocket);
 
-        return () => {
-            newSocket.disconnect();
-            setSocket(null);
-            listenersRef.current = [];
-        };
-    }, [user]);
-
-    // 🔁 Reînregistrează toți listenerii dacă socket-ul se schimbă
-    useEffect(() => {
-        if (!socket) return;
-
-        listenersRef.current.forEach((listener) => {
-            socket.on('receiveMessage', listener);
+        newSocket.on('connect', () => {
+            console.log('✅ Socket conectat:', newSocket.id);
+            // Reatașează toți listenerii
+            listenersRef.current.forEach((cb) => {
+                newSocket.on('receiveMessage', cb);
+            });
         });
 
         return () => {
-            if (socket) socket.off('receiveMessage');
+            console.log('🔌 Cleanup socket:', newSocket.id);
+            newSocket.disconnect();
+            listenersRef.current = [];
+            setSocket(null);
         };
-    }, [socket]);
+    }, [user]);
 
-    // 👇 Acum înregistrează callback-ul direct și imediat
     const onMessage = (callback) => {
         if (!callback || typeof callback !== 'function') return;
 
-        // evită dubluri
-        if (listenersRef.current.includes(callback)) return;
-
-        listenersRef.current.push(callback);
-
-        // dacă socket există deja, înregistrează direct
-        if (socket) {
-            socket.on('receiveMessage', callback);
+        const alreadyRegistered = listenersRef.current.includes(callback);
+        if (!alreadyRegistered) {
+            listenersRef.current.push(callback);
+            if (socket) socket.on('receiveMessage', callback);
         }
     };
 

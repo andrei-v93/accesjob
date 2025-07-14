@@ -1,11 +1,36 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const User = require('../models/User');
 
-// Creare conversație (doar recrutorul poate iniția)
+// 🔧 Configurare multer
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/messages/');
+    },
+    filename: (req, file, cb) => {
+        const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9) + path.extname(file.originalname);
+        cb(null, uniqueName);
+    }
+});
+const upload = multer({ storage });
+
+// 🔄 Upload fișier
+router.post('/upload', upload.single('file'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'Niciun fișier trimis' });
+    }
+
+    const fileUrl = `${process.env.SERVER_URL}/uploads/messages/${req.file.filename}`;
+    res.status(200).json({ url: fileUrl, name: req.file.originalname });
+});
+
+// Creare conversație
 router.post('/start', async (req, res) => {
     try {
         const { recruiterId, employeeId } = req.body;
@@ -17,15 +42,10 @@ router.post('/start', async (req, res) => {
             return res.status(400).json({ message: 'Utilizatori invalizi' });
         }
 
-        // Caută conversația existentă în funcție de recruiterId și employeeId
         let conversation = await Conversation.findOne({ recruiterId, employeeId });
 
         if (!conversation) {
-            conversation = new Conversation({
-                recruiterId,
-                employeeId,
-                participants: [recruiterId, employeeId]
-            });
+            conversation = new Conversation({ recruiterId, employeeId });
             await conversation.save();
         }
 
@@ -36,20 +56,17 @@ router.post('/start', async (req, res) => {
     }
 });
 
-// Obține toate conversațiile utilizatorului
+// Toate conversațiile utilizatorului
 router.get('/conversations/:userId', async (req, res) => {
     try {
         const userId = new mongoose.Types.ObjectId(req.params.userId);
 
         const conversations = await Conversation.find({
-            $or: [
-                { recruiterId: userId },
-                { employeeId: userId }
-            ]
+            $or: [{ recruiterId: userId }, { employeeId: userId }]
         })
             .populate('recruiterId', 'name userType pozaUrl')
             .populate('employeeId', 'name userType pozaUrl')
-            .sort({ lastUpdated: -1 });
+            .sort({ updatedAt: -1 });
 
         res.status(200).json(conversations);
     } catch (err) {
@@ -58,8 +75,7 @@ router.get('/conversations/:userId', async (req, res) => {
     }
 });
 
-
-// Obține toate mesajele dintr-o conversație
+// Toate mesajele dintr-o conversație
 router.get('/messages/:conversationId', async (req, res) => {
     try {
         const messages = await Message.find({
@@ -72,19 +88,41 @@ router.get('/messages/:conversationId', async (req, res) => {
     }
 });
 
-// Trimite un mesaj nou
+// Salvare + emitere mesaj nou (text sau fișier)
 router.post('/message', async (req, res) => {
     try {
-        console.log('🔧 Mesaj primit:', req.body); // ← adaugă asta
-        const { conversationId, senderId, text } = req.body;
+        const { conversationId, senderId, text, fileUrl, fileName } = req.body;
 
-        if (!conversationId || !senderId || !text) {
-            console.log('❌ Câmpuri lipsă:', { conversationId, senderId, text });
-            return res.status(400).json({ message: 'Toate câmpurile sunt obligatorii.' });
+        if (!conversationId || !senderId) {
+            return res.status(400).json({ message: 'conversationId și senderId sunt obligatorii.' });
         }
 
-        const message = new Message({ conversationId, senderId, text });
+        const messageData = {
+            conversationId,
+            senderId,
+            text: text || '',
+            fileUrl,
+            fileName
+        };
+
+        const message = new Message(messageData);
         await message.save();
+
+        await Conversation.findByIdAndUpdate(conversationId, {
+            lastMessage: text || 'Fișier trimis',
+            lastSenderId: senderId,
+            updatedAt: new Date()
+        });
+
+        req.io.to(conversationId).emit('receiveMessage', {
+            _id: message._id,
+            conversationId,
+            senderId,
+            text: message.text,
+            fileUrl: message.fileUrl,
+            fileName: message.fileName,
+            createdAt: message.createdAt
+        });
 
         res.status(201).json(message);
     } catch (err) {

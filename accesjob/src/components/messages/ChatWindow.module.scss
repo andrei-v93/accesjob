@@ -1,0 +1,62 @@
+.chatWindow {
+  height: 100%;
+  overflow: hidden;
+
+  .messagesContainer {
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+}
+
+.dragOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 3px dashed #ccc;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+.lightboxOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightboxContent {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+}
+
+.lightboxMedia {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 10px;
+  box-shadow: 0 0 20px #000;
+}
+
+.closeBtn, .downloadBtn {
+  position: absolute;
+  top: 10px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  padding: 5px 10px;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.closeBtn { right: 10px; }
+.downloadBtn { left: 10px; }
